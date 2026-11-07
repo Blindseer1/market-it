@@ -35,7 +35,6 @@ async def analyze_business(req: AnalyzeRequest):
     if DEMO:
         insight, opportunities = demo_market(b)
         return Analysis(summary=f'{b.name} activează în domeniul {b.industry}, în {b.city}. {insight} Analiză demonstrativă, fără cercetare live.', audience_insight=f'Public: {b.audience}. Obiectiv: {b.goal}. Adaptați mesajul la nevoile acestui segment.', opportunities=opportunities, risks=['Bugetul necesită prioritizare','Concurența trebuie verificată din surse reale','Nu există date istorice de conversie'], sources=[],demo=True)
-    if not os.getenv('OPENAI_API_KEY'): raise HTTPException(503,'Lipsește OPENAI_API_KEY')
     site=await extract_website(b.website) if b.website else {'text':'','sources':[]}
     try: return await analyze(b,site['text'],site['sources'])
     except Exception as exc: raise HTTPException(502, f'Analiza AI a eșuat: {str(exc)[:180]}')
@@ -52,14 +51,12 @@ async def generate_strategies(req: StrategiesRequest):
         if 'serios' in b.tone.lower() or 'premium' in b.tone.lower():
             concepts[0]=('Experiența care contează','Video elegant care prezintă avantajele reale ale produsului sau serviciului.',['Instagram','Facebook'],86,'Calitatea se vede în detalii.',.50)
         return {'strategies':[Strategy(id=f'strategy_{i+1}',title=t,description=f'{d} Adaptată pentru {b.industry} și publicul {b.audience}.',channels=c,budget=round(b.budget*share,2),score=sc,hook=h,image_prompt=f'High quality professional advertising photo for {b.name}, {b.industry}, {t}, {b.tone} atmosphere, target audience {b.audience}, clean composition, no text, no letters, no watermark') for i,(t,d,c,sc,h,share) in enumerate(concepts)]}
-    if not os.getenv('OPENAI_API_KEY'): raise HTTPException(503,'Lipsește OPENAI_API_KEY')
     try: return {'strategies':await strategies(b,req.analysis)}
     except Exception as exc: raise HTTPException(502, f'Generarea strategiilor a eșuat: {str(exc)[:180]}')
 
 @app.post('/api/creatives',response_model=CreativeAssets)
 async def creatives(req: CreativeRequest):
     if DEMO: return demo_assets(req.business,req.strategy)
-    if not os.getenv('OPENAI_API_KEY'): raise HTTPException(503,'Lipsește OPENAI_API_KEY')
     try: return await generate_creatives(req.business,req.strategy)
     except Exception as exc: raise HTTPException(502,f'Generarea materialelor a eșuat: {str(exc)[:180]}')
 

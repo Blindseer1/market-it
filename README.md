@@ -1,6 +1,6 @@
-# AdPilot AI — Hackathon MVP v0.4
+# MarketIt
 
-**Stack:** React 18 + Vite + TypeScript + **CSS normal (fără Tailwind)** + Recharts; Python + FastAPI + Pydantic; OpenAI API; Adobe Firefly Services API.
+**Stack:** React 18 + Vite + TypeScript + CSS + Recharts; Python + FastAPI + Pydantic; OpenAI API; Adobe Firefly Services API.
 
 ## Ce funcționează acum
 

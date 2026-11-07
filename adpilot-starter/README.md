@@ -1,4 +1,4 @@
-# AdPilot AI — Hackathon MVP v0.3
+# AdPilot AI — Hackathon MVP v0.4
 
 **Stack:** React 18 + Vite + TypeScript + **CSS normal (fără Tailwind)** + Recharts; Python + FastAPI + Pydantic; OpenAI API; Adobe Firefly Services API.
 
@@ -14,6 +14,10 @@
 8. Generare Adobe Firefly asincronă: cerere + polling când Adobe returnează status URL.
 9. Export JSON, brief TXT, poster PNG; salvare automată a progresului în `localStorage`.
 10. Dashboard Recharts cu alocare buget; design responsive.
+11. Istoric local cu până la 12 campanii și restaurarea lor din sidebar.
+12. Modul demo adaptează analiza și strategiile după industrie, ton și buget.
+13. Verificare automată periodică a jobului Adobe, când API-ul oferă un identificator de job.
+14. Cinci teste automate pentru backend, inclusiv personalizare și validare.
 
 **Atenție:** În modul demo datele sunt fictive, iar posterul este randat de CSS/Canvas, nu de Adobe. Pentru generare reală, sunt necesare chei și acces Firefly Services API. Adobe poate modifica forma răspunsurilor; validați integrarea cu contul vostru.
 
@@ -28,7 +32,7 @@ python -m venv .venv
 # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env  # Windows: copy .env.example .env
-uvicorn main:app --reload
+py -m uvicorn main:app --reload  # Windows; pe Linux/macOS: python -m uvicorn main:app --reload
 ```
 
 Backend: http://localhost:8000/docs · Health: http://localhost:8000/api/health
@@ -37,8 +41,8 @@ Backend: http://localhost:8000/docs · Health: http://localhost:8000/api/health
 
 ```bash
 cd frontend
-npm install
-npm run dev
+npm.cmd install
+npm.cmd run dev
 ```
 
 Site: **http://localhost:5173**. Vite redirecționează `/api` spre FastAPI (`localhost:8000`). Nu trebuie să configurați CORS manual pentru acest flux.
@@ -108,3 +112,27 @@ npm run build
 3. Editarea hook-ului → Growth → Creative Studio.
 4. Poster + social copy + script video + evaluare.
 5. Dacă Adobe este configurat, generați o imagine; altfel folosiți fallback-ul CSS și explicați clar că e demo.
+
+## Verificări și limitări (important)
+
+- Backend: `cd backend && py -m unittest discover -s tests -v` — 5 teste trecute în mediul de dezvoltare.
+- Frontend: `cd frontend && npm.cmd run build` — necesită instalarea dependențelor; instalarea npm nu a putut fi finalizată în mediul de creare, deci buildul frontend trebuie verificat pe PC-ul vostru.
+- Nu există procesator de plăți, publicare automată pe rețele sociale, date reale de reach sau baze de date centralizate. Aceste funcții necesită integrări suplimentare și nu sunt prezentate ca funcționale.
+- Modul live OpenAI/Adobe necesită acces valid la servicii și poate avea costuri. Integrarea Adobe trebuie validată cu un cont Firefly Services API.
+- Nu introduceți date confidențiale în câmpul website; conținutul extern este tratat ca sursă neîncredere.
+
+## Pornire Windows PowerShell (fără schimbarea ExecutionPolicy)
+
+Terminal 1:
+```powershell
+cd backend
+py -m pip install -r requirements.txt
+py -m uvicorn main:app --reload
+```
+Terminal 2:
+```powershell
+cd frontend
+npm.cmd install
+npm.cmd run dev
+```
+Vizitați `http://localhost:5173/` și `http://127.0.0.1:8000/docs`.

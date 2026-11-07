@@ -14,6 +14,18 @@ app = FastAPI(title='AdPilot AI API', version='0.3.0')
 app.add_middleware(CORSMiddleware, allow_origins=['http://localhost:5173','http://127.0.0.1:5173'], allow_methods=['GET','POST'], allow_headers=['Content-Type'])
 DEMO = os.getenv('DEMO_MODE', 'true').lower() == 'true'
 
+def demo_market(b):
+    sector=b.industry.lower()
+    if any(word in sector for word in ('cafenea','horeca','restaurant')):
+        return ('Testați oferte locale, conținut video despre produse și recomandări între prieteni.',
+                ['Video scurt cu produsul și experiența din locație','Ofertă cu QR pentru grupuri','Parteneriate cu creatori locali'])
+    if any(word in sector for word in ('fashion','retail','beauty','salon')):
+        return ('Testați demonstrații vizuale ale produsului, testimoniale autentice și oferte limitate.',
+                ['Reels demonstrative înainte/după fără afirmații neverificate','Postări cu beneficii și preț transparent','Cod promoțional pentru prima comandă'])
+    return ('Testați mesaje despre problema rezolvată, exemple de utilizare și un îndemn clar la acțiune.',
+            ['Video educativ de 15 secunde','Carousel cu trei beneficii verificabile','Landing page cu ofertă și formular'])
+
+
 @app.get('/api/health')
 def health(): return {'ok':True,'demo':DEMO,'adobe_configured':bool(os.getenv('ADOBE_CLIENT_ID') and os.getenv('ADOBE_CLIENT_SECRET'))}
 
@@ -21,7 +33,8 @@ def health(): return {'ok':True,'demo':DEMO,'adobe_configured':bool(os.getenv('A
 async def analyze_business(req: AnalyzeRequest):
     b=req.business
     if DEMO:
-        return Analysis(summary=f'{b.name} activează în domeniul {b.industry}, în {b.city}. Aceasta este o analiză ilustrativă, nu cercetare live.', audience_insight=f'Public țintă: {b.audience}. Testați mesaje adaptate obiectivului „{b.goal}”.', opportunities=['Conținut video scurt adaptat publicului','Oferte cu cod QR măsurabil','Colaborări locale și conținut de comunitate'], risks=['Bugetul necesită prioritizare','Concurență posibilă pe canalele sociale','Lipsesc date istorice de conversie'], sources=[],demo=True)
+        insight, opportunities = demo_market(b)
+        return Analysis(summary=f'{b.name} activează în domeniul {b.industry}, în {b.city}. {insight} Analiză demonstrativă, fără cercetare live.', audience_insight=f'Public: {b.audience}. Obiectiv: {b.goal}. Adaptați mesajul la nevoile acestui segment.', opportunities=opportunities, risks=['Bugetul necesită prioritizare','Concurența trebuie verificată din surse reale','Nu există date istorice de conversie'], sources=[],demo=True)
     if not os.getenv('OPENAI_API_KEY'): raise HTTPException(503,'Lipsește OPENAI_API_KEY')
     site=await extract_website(b.website) if b.website else {'text':'','sources':[]}
     try: return await analyze(b,site['text'],site['sources'])
@@ -31,8 +44,14 @@ async def analyze_business(req: AnalyzeRequest):
 async def generate_strategies(req: StrategiesRequest):
     b=req.business
     if DEMO:
-        concepts=[('Survival Mode ON','Video scurt, amuzant, construit în jurul unei probleme cotidiene.',['Instagram Reels','TikTok'],87,'3 ore de somn. 1 cafea. Restart.',.50),('Bring Your Friend','Ofertă pentru două persoane, cu cod QR pentru urmărirea conversiilor.',['Instagram Stories','Flyere QR'],83,'Adu un prieten. Experiența e mai bună în doi.',.30),('Community Stories','Campanie participativă bazată pe poveștile și reacțiile comunității.',['TikTok','Instagram'],79,'Care este cea mai amuzantă poveste a ta?',.20)]
-        return {'strategies':[Strategy(id=f'strategy_{i+1}',title=t,description=d,channels=c,budget=round(b.budget*share),score=sc,hook=h,image_prompt=f'Premium advertising photograph for {b.name}, industry {b.industry}, campaign {t}, {b.tone} mood, appealing to {b.audience}, clean composition, no lettering, no logos, no text') for i,(t,d,c,sc,h,share) in enumerate(concepts)]}
+        concepts=[
+            ('Povestea în 15 secunde','Video vertical despre problema publicului și cum o rezolvă oferta.',['Instagram Reels','TikTok'],87,'O zi mai bună începe aici.',.50),
+            ('Vino cu un prieten','Ofertă pentru două persoane, cu cod QR măsurabil.',['Instagram Stories','Materiale QR'],83,'Mai bine împreună. Descoperă oferta.',.30),
+            ('Comunitatea decide','Campanie participativă cu povești, voturi și conținut de la clienți.',['Instagram','Facebook'],79,'Tu alegi următoarea experiență!',.20)
+        ]
+        if 'serios' in b.tone.lower() or 'premium' in b.tone.lower():
+            concepts[0]=('Experiența care contează','Video elegant care prezintă avantajele reale ale produsului sau serviciului.',['Instagram','Facebook'],86,'Calitatea se vede în detalii.',.50)
+        return {'strategies':[Strategy(id=f'strategy_{i+1}',title=t,description=f'{d} Adaptată pentru {b.industry} și publicul {b.audience}.',channels=c,budget=round(b.budget*share,2),score=sc,hook=h,image_prompt=f'High quality professional advertising photo for {b.name}, {b.industry}, {t}, {b.tone} atmosphere, target audience {b.audience}, clean composition, no text, no letters, no watermark') for i,(t,d,c,sc,h,share) in enumerate(concepts)]}
     if not os.getenv('OPENAI_API_KEY'): raise HTTPException(503,'Lipsește OPENAI_API_KEY')
     try: return {'strategies':await strategies(b,req.analysis)}
     except Exception as exc: raise HTTPException(502, f'Generarea strategiilor a eșuat: {str(exc)[:180]}')

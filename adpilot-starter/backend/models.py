@@ -41,7 +41,7 @@ class ImageRequest(BaseModel):
 class CreativeRequest(BaseModel):
     business: Business
     strategy: Strategy
-    package: str = 'Growth'
+    package: str = Field(default='Growth', pattern='^(Starter|Growth|Pro)$')
 
 class CreativeAssets(BaseModel):
     headline: str

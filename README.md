@@ -62,7 +62,7 @@ ADOBE_CLIENT_SECRET=...
 Pentru demo fără chei, păstrați `DEMO_MODE=true`. Când `DEMO_MODE=false`, analiza, strategiile și copy-ul folosesc OpenAI; imaginile folosesc Adobe. Cheile rămân exclusiv pe server. Nu puneți `.env` în Git.
 
 ## Împărțirea între cei 4 membri
-
+ 
 | Membru | Ownership | Fișiere principale | Următorul pas |
 |---|---|---|---|
 | 1 — Frontend & UX | Formular, wizard, responsive | `frontend/src/App.tsx`, `styles.css` | Spargeți App în componente și validați mai bine formularul |
